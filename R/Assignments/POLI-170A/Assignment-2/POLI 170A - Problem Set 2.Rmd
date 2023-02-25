@@ -1,0 +1,139 @@
+---
+title: "POLI 170A - Problem Set 2"
+author: "Gonzalo Rocha-Vazquez"
+date: "7/15/2022"
+output: pdf_document
+---
+
+
+# __Question 1. I want to measure whether or not people are satisfied with their social life at UCSD.__ In order to do so, I go to the Sun God Festival and ask people whether they are satisfied with the social lives (Yes/No).
+ * What is wrong with my sampling strategy?
+  + This is a Non-probabilistic strategy, it seems to be a convenience sample. This is problematic because the people surveyed are likely to have biased (positive) views of their social life since they're attending an event that is likely to be attended by outgoing, extrovert students with leisure time. Therefore, it might not be the most representative sample because the people who are introverts with little to no leisure time are unliekly to be there.
+ * Describe how my measurement strategy could lead to BOTH random and systematic measurement error, using the definitions of these terms in your response.
+  + This could lead to systematic measurement error for the reasons stated above: the people that would attend an event like Sun God are more likely to have positive views of their social life. The students on the other end of the spectrum, those unsatisified with their social lives, may not be at the event for a variety of reasons (e.g., too busy studying to enjoy a social life). This could also lead to random error if someone has a bad experience prior to being surveyed: maybe someone was dissatisfied with the entertainment line-up for the event and has negative views of the event that will bias their answer when you ask them if they're satisfied with their social life. 
+ * Which of these errors would you be most concerned about as a researcher and why?
+  + I'd be more worried about the systematic error of choosing an unrepresentative sample frame because not only will this likely produce consistent bias across our results, but it's also the error type that we are most capable of limiting and/or avoiding. You have less control over a person's preferences and the small minutia that may influence their answers, typically this won't have too great of an effect on the results if limited, but choosing a sample frame that is already biased is a grave error that will greatly affect the way your results turn out. 
+
+# __Question 2. I want to understand how racist language in politician’s speeches affects approval for the politician.__ I use a survey experiment to measure this relationship, because it is difficult to measure how peoples’ approval changes if politicians use racist language in the real world. Using the definitions we discussed in class, discuss briefly:
+ * Will my measurement strategy produce internally valid conclusions?
+  + I would say the cause-and-effect relationship that the survey is attempting may not be the one we're testing for. It's possible the party affiliation or policy issues are going to act as a confounding variable. Perhaps a respondent who is a Democrat or Republican is going to discern the politician's opposing party affiliation/views based on the contents of the speech, and focus less on the racist language they're using. For example, if their speech is opposed to immigration, and uses racist language, negative views of the politician may be furthered by the racist language, but the large portion may be attributed to their stance on the issue. Additionally, there's no mention of how this survey experiment will be fielded, so unless respondents are presented with specific politicians and are shown their speeches, it's unlikely they've heard the politician speak. 
+ * Will my findings lead to externally valid conclusions?
+ + This will be unlikely to be generalizable. First, because it is not internally valid. Second, maybe it would work in one context (e.g., the U.S. where racism has been an officially recognized issue for decades) but maybe it wouldn't _as well_ in other contexts where the population is incredibly diverse and the rule of law didn't allow segregation (e.g., Brazil where there seems to be a greater focus on class than race). 
+# __Question 3. Alternative explanations and confounding variables.__ I notice that countries that have more protected wildlife areas have higher biodiversity. I hypothesize that protected wildlife areas help protect biodiversity.
+ * Why is this not a forgone conclusion? What is an alternative explanation that could explain the higher level of biodiversity in those countries?
+ + This doesn't seem to account for geography. It's possible that the countries with protected wildlife areas are just more hospitable environments for a greater variety of flaura and fauna. I haven't checked, but I would assume Latin America (e.g., Brazil) would have greater biodiversity than say Eastern Europe (e.g., Russia)
+ * Give an example of a confounding variable that you could control for in order to rule out the alternative explanation you have proposed.
+ + I guess you could attempt to quantify the average temperature in each area, or rainfall, and use this as an indicator variable for how hospitable the environment is to promote biodiversity. 
+
+```{r setup, warning=FALSE}
+# 1. Set Working Directory
+setwd("/Users/gonzalorocha-vazquez/Desktop/POLI 170A/Data")
+
+# 2. Load Packages
+library(readxl) #loads excel files
+library(readr) #loads csv files
+library(tidyverse)
+library(dplyr) #data wrangling
+library(ggplot2) #needed for visualizations
+
+# 3. Load data
+rural <- read_xlsx("RuralPopData_POLI170A.xlsx")
+rural$`Rural population (% of total population)` <- as.numeric(
+                               rural$`Rural population (% of total population)`) 
+# NA in Eritrea, Kosovo, and Saint Martin
+
+coffee <- read.csv("coffee_production.csv") 
+# NA in Saint Lucia
+
+# 4. IQR of coffee (2017)
+IQR(coffee$coffee_production_2017, na.rm = T) # T means True
+
+# 5. Filter the coffee production data so that it does NOT include the 
+#    observation for the country of Saint Lucia.
+coffee <- coffee %>% drop_na(coffee_production_2017) #had to load tidyverse
+
+# 6. Select only the iso and coffee production 2017 variables from the coffee dataset
+coffee <- coffee %>% select(iso, coffee_production_2017)
+
+# 7. Rename the variables in the Rural Population data to be: (a) country; (b) iso; 
+#    (c) rural_pop_percent
+rural <- rename(rural, country = `Country Name`, #rewrite original object
+                       iso = `Country Code`, #format: new_name = old_name
+                       rural_pop_percent = `Rural population (% of total population)`)
+     
+# 8. Using the left join command from the dplyr package, merge the coffee data
+#    into the rural population data.
+new_dataset <- dplyr::left_join(rural, coffee, by = c("iso" = "iso"))
+# dplyr::left_join(first, second, by = c("first" = "second")) 
+# We merged onto rural, so information in coffee but not in rural got dropped
+     
+     
+# 9. Produce a scatterplot of the rural pop percent and the coffee production 2017 
+# variables, with rural_pop_percent on the x-axis and coffee production 2017 on the y-axis.
+ggplot(new_dataset, aes(x=rural_pop_percent, y=coffee_production_2017)) + 
+      geom_point(shape=18, size = 3) + 
+      labs(title = "The Effects of Rural Population on a Country's Coffee Production (2017)") +
+      xlab("Rural Population Percentage") + 
+      ylab("Coffee Production (2017)") +
+      theme_classic()
+
+# 10. What do you notice about the relationship between the rural population 
+#     percent and coffee production in 2017?
+print("The results seem to be a bit mixed. However, it seems that most of our 
+      countries have lower rural population percentages, but there does not seem
+      to be a strong correlation between the two variables. Additionally, there's
+      two outliers: one with larger rural population percentage (Guyana) and one 
+      with significantly larger coffee production (Brazil)")
+```
+
+# Question 5. Specify your null and alternative hypotheses.
+_Alternative Hypothesis:_ Civilians whose local police participate in crime will be less likely to view Organized crime and drug trafficking groups as the biggest threat to their safety than civilians whose local police protect against crime.
+
+_Null Hypothesis:_ Civilians whose local police participate in crime will be just as likely to view Organized crime and drug trafficking groups as the biggest threat to their safety as civilians whose local police protect against crime.
+
+# Question 6. What is a potential confounding variable that might provide an alternative explanation for your hypothesized relationship?
+A potential confounding variable could be gang presence in neighborhood _(AOJ17: Gang Presence in Neighborhood)_ as it could make them more likely to name DTOs as the biggest threat to their security. Alternatively, their level of trust in Police _(B18: Trust in National Police)_ could affecct their answers: if they don't trust the police, it's likely they could name the police as their biggest threat instead of DTOs (especially if there isn't a large gang presence in the area).
+
+# Question 7. Using R, please report an appropriate measure of central tendency and dispersion for BOTH your independent and dependent variables.
+```{r setup, warning=FALSE}
+# setwd("/Users/gonzalorocha-vazquez/Desktop/POLI 170A/ICPSR_36562/DS0001")
+# load(file = "36562-0001-Data.rda")
+# 
+# da36562.0001$AOJ21 <- as.numeric(da36562.0001$AOJ21)
+# table(da36562.0001$AOJ21)
+# 
+# da36562.0001$AOJ18 <- as.numeric(da36562.0001$AOJ18)
+# table(da36562.0001$AOJ18)
+# 
+# #These ones are factors, wasn't sure how to measure central tendency, was 
+# #considering just showing the percentage for each response. 
+# 
+# # Independent Variable: (AOJ18: Police Protect vs Police Participate in Crime)
+# mean(da36562.0001$AOJ18, na.rm = T)
+# 
+# # Dependent Variable: (AOJ21: Groups that Pose the Greatest Threat to Your Security)
+# mean(da36562.0001$AOJ21, na.rm = T)
+```
+
+# Question 8. Provide at least one descriptive plot of either your independent or dependent variable.
+```{r setup, warning=FALSE}
+# ggplot(da36562.0001, aes(x=AOJ21)) + geom_bar() + 
+#                labs(title = "Distribution of Threats to Respondent's Safety") +
+#                           xlab("Groups (1 - 10)") + 
+#                           theme_classic()
+
+# 1	Neighbors in your community
+# 2	Gangs
+# 3	The police or military
+# 4	Organized crime and drug trafficking
+# 5	Persons belonging to your family
+# 6	Common criminals
+# 7	Others
+# 8	None
+# 9	Guerrillas
+# 10	Emerging criminal gangs (BACRIM)
+```
+
+# Question 9. Write a very brief summary of what the descriptive plot communicates.
+
+As we can see, the groups that most threaten civilians safety are gangs (2) and common criminals (6).
