@@ -1,0 +1,260 @@
+---
+title: 'Data Assignment # 2'
+author: "Gonzalo Rocha-Vazquez"
+date: "10/23/2021"
+output: html_document
+---
+
+```{r}
+setwd("/Users/gonzalorocha-vazquez/Desktop/POLI 170/Assignment 2")
+dat <- read.csv("data_health_synth.csv")
+```
+
+# Part 1: Summary Statistics 
+
+## 1 
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "  Names of the key variables the in dataset for this assignment
+
+| Variable                                               | Name in Dataset    |
+|--------------------------------------------------------|-------------------:|
+| (a) Total medical expenditures in year t               | cost_t             |
+| (b) Total number of active chronic illnesses in year t | gagne_sum_t        |
+| (c) Risk score produced by the commercial algorithm    | risk_score_t       |
+| (d) Program enrollment                                 | program_enrolled_t |
+| (e) Race                                               | race               |
+"
+cat(tabl)
+```
+
+## 2 
+The title for variable two listed above (Total number of active chronic illnesses in year t) tells us the conceptual version of this variable, we know what we want to measure; however, this is easier said than done. 
+The operational version of the variable would be not only the year t in which it was measured, but also the definitions for active chronic illnesses that we are using since this determines what will be included; if something that is troubling the patient does not fulfill this two criterion, it will not be included. 
+In regards to actualized version, this is the value that is inputted into our dataset for each observation; all of these were things that were troubling the patient, and fulfilled our definitions from the operational version.
+
+## 3
+```{r} 
+#Mean value of Total medical expenditures in year t
+mean(dat$cost_t)
+#Mean value of Total number of active chronic illnesses in year t
+mean(dat$gagne_sum_t)
+#Mean value of Risk Score produced by the commercial algorithm
+mean(dat$risk_score_t)
+#Mean value of Program enrollment
+mean(dat$program_enrolled_t)
+``` 
+
+## 4 
+```{r}
+#Proportion of patients who belong to each racial group
+prop.table(table(dat$race)) #table gives us number, prop.table gives us percent
+```
+
+## 5 
+```{r}
+#White Racial Group
+#Mean Medical Expenditures
+mean(dat$cost_t[dat$race == "white"])
+#Mean Chronic Illnesses
+mean(dat$gagne_sum_t[dat$race == "white"])
+
+#Black Racial Group
+#Mean Medical Expenditures
+mean(dat$cost_t[dat$race == "black"])
+#Mean Chronic Illnesses
+mean(dat$gagne_sum_t[dat$race == "black"])
+```
+
+## 6 
+```{r}
+library(dplyr)
+
+#Mean Medical Expenditures
+dat %>% 
+  group_by(race) %>% 
+  summarise(mean_med_expen = mean(cost_t))
+
+#Mean Chronic Illnesses
+dat %>% 
+  group_by(race) %>% 
+  summarise(mean_chron_ill = mean(gagne_sum_t))
+```
+
+## 7 
+According to these tables, the white racial group on average spends $7455.77 on medical expenditures yearly, while the black racial group spends $9238.14 yearly; this is approximately an $1800 difference. 
+Regarding the mean number of chronic illnesses across racial groups, the white racial 
+group seems to have an average of 1.26 active chronic illnesses while the black racial group has an average of 2.05 active chronic illnesses; this is a difference of approximately .80 active chronic illnesses. 
+It's clear that the black racial group has more chronic illnesses and spends more on medical expenditures on average. 
+
+# Part 2: Assessing Program Enrollment 
+
+## 1
+```{r}
+#Patients enrolled in the Program
+hist(dat$risk_score_t[dat$program_enrolled_t == 1], breaks = 20, xlim = c(0,100))
+
+#Patients not enrolled in the Program
+hist(dat$risk_score_t[dat$program_enrolled_t == 0], breaks = 20, xlim = c(0,100))
+```
+
+## 2
+A large majority of the data for those not enrolled in the program seems to be associated with the risk score of 0% to 5%; almost no one has a risk score of +30%.
+For those enrolled in the program, the majority of these patients have risk scores of 5% to 25%; however, there are quite a few that go +30% (some go up to 80%). 
+Since there is a lot of overlap in to 0% to 20% range, I would not say that there is a strict threshold that perfectly determines who gets enrolled in the program; however, if the patient has +30% risk score they're likely to be enrolled in the program. 
+This is not too surprising since it makes sense that people with higher risk scores would enroll in the program. The histogram for the patients not enrolled shows starts to trail off significantly after risk scores surpass 5%; they also have significantly frequencies, meaning there are a lot less people not enrolled in the program than those who are enrolled in the program. 
+
+## 3 
+```{r}
+#25th percentile of risk score
+p25 <- quantile(dat$risk_score_t, probs = 0.25)
+p25
+
+#75th percentile of risk score
+p75 <- quantile(dat$risk_score_t, probs = 0.75)
+p75
+```
+
+## 4 
+```{r}
+#Mean enrollment for patients whose risk score is below the 25th percentile
+mean(dat$program_enrolled_t[dat$risk_score_t < p25])
+
+#Mean enrollment for patients whose risk score is above/equal to the 25th percentile & below the 75th percentile
+mean(dat$program_enrolled_t[dat$risk_score_t >= p25 & dat$risk_score_t < p75])
+
+#Mean enrollment for patients whose risk score is above/equal to the 75th percentile
+mean(dat$program_enrolled_t[dat$risk_score_t >= p75])
+```
+
+## 5 
+Yes, it does appear that the higher the risk score percentile, the bigger the proportion of patients enrolled in the program. We can see that there is a significant difference between each of these three groups. 
+
+## 6 
+```{r}
+dat_subset <- dat[dat$program_enrolled_t == 0 & dat$risk_score_t >= p75,]
+```
+There appears to be 11818 patients in this "not-enrolled-high-risk" subset.
+
+## 7 
+```{r}
+#Mean Chronic Illnesses
+dat_subset %>% 
+  group_by(race) %>% 
+  summarise(mean_chron_ill = mean(gagne_sum_t))
+```
+
+## 8 
+Yes, it appears that the black racial group has a higher number of chronic illnesses than the white racial group does while being in the same risk score range. What this means is that the white racial group is getting more care because they have a higher risk score, while the black racial group has a lower risk score at the same number of active chronic illnesses; essentially, the black racial group isn't getting enrolled in the program early enough. 
+
+# Part 3: Building Predictive Models
+
+## 1 
+```{r}
+mod1 <- lm(cost_t ~ dem_female + #Female Indicator
+             dem_age_band_18.24_tm1 + dem_age_band_25.34_tm1 + dem_age_band_35.44_tm1 + dem_age_band_45.54_tm1 + dem_age_band_55.64_tm1 + dem_age_band_65.74_tm1 + dem_age_band_75._tm1 + # Age indicators
+             anemia_elixhauser_tm1 + bloodlossanemia_elixhauser_tm1 + arrhythmia_elixhauser_tm1 + compdiabetes_elixhauser_tm1 + uncompdiabetes_elixhauser_tm1 + depression_elixhauser_tm1 + hypertension_elixhauser_tm1 + hypothyroid_elixhauser_tm1 + pulmonarydz_romano_tm1 + renal_elixhauser_tm1 + tumor_romano_tm1 +  #Comorbidity variables at time t-1
+             cost_dialysis_tm1 + cost_emergency_tm1 + cost_home_health_tm1 + cost_ip_medical_tm1 + cost_ip_surgical_tm1 + cost_laboratory_tm1 + cost_op_primary_care_tm1 + cost_op_specialists_tm1 + cost_op_surgery_tm1 + cost_other_tm1 + cost_pharmacy_tm1 + cost_physical_therapy_tm1 + cost_radiology_tm1, data = dat) #All cost variables at time t-1
+
+#R^2
+summary(mod1)$r.squared
+```
+
+## 2 
+```{r}
+#mean function will take the sum & divide it by number of observations for us
+mean((dat$cost_t - mod1$fitted.values)^2) 
+```
+
+## 3 
+```{r}
+mod2 <- lm(gagne_sum_t ~ dem_female + #Female Indicator
+             dem_age_band_18.24_tm1 + dem_age_band_25.34_tm1 + dem_age_band_35.44_tm1 + dem_age_band_45.54_tm1 + dem_age_band_55.64_tm1 + dem_age_band_65.74_tm1 + dem_age_band_75._tm1 + # Age indicators
+             anemia_elixhauser_tm1 + bloodlossanemia_elixhauser_tm1 + arrhythmia_elixhauser_tm1 + compdiabetes_elixhauser_tm1 + uncompdiabetes_elixhauser_tm1 + depression_elixhauser_tm1 + hypertension_elixhauser_tm1 + hypothyroid_elixhauser_tm1 + pulmonarydz_romano_tm1 + renal_elixhauser_tm1 + tumor_romano_tm1 +  #Comorbidity variables at time t-1
+             cost_dialysis_tm1 + cost_emergency_tm1 + cost_home_health_tm1 + cost_ip_medical_tm1 + cost_ip_surgical_tm1 + cost_laboratory_tm1 + cost_op_primary_care_tm1 + cost_op_specialists_tm1 + cost_op_surgery_tm1 + cost_other_tm1 + cost_pharmacy_tm1 + cost_physical_therapy_tm1 + cost_radiology_tm1, data = dat) #All cost variables at time t-1
+
+#R^2
+summary(mod2)$r.squared
+
+mean((dat$cost_t - mod2$fitted.values)^2) 
+```
+
+## 4 
+```{r}
+#A - the correlation between the fitted values from mod1 and the risk scores from the commercial algorithm
+cor(mod1$fitted.values, dat$risk_score_t)
+
+#B - the correlation between the fitted values from mod2 and the risk scores from the commercial algorithm
+cor(mod2$fitted.values, dat$risk_score_t)
+```
+
+## 5 
+Obermeyer et al. (2019) tells us that costs remain more consistent across the percentiles, there is less deviation here. When we saw active chronic illnesses, there was much more deviation between the racial groups across the risk score percentiles.  Therefore, we could expect correlation (a) to be higher; which it was. 
+
+## 6 
+The correlations are not closer to 1 because of that bias between racial groups. This is why the correlation with mod1 (using medical expenditures) was closer to 1 than the correlation with mod2 (using active chornic illnesses). As stated in the last question, mod1 was much more consistent across the risk score percentiles for both racial groups; there was deviation between the groups, just a lot smaller. I believe that this is why the correlations were not closer to 1.
+
+# Part 4: Recreating Figures
+```{r}
+#Chunk 1:
+risk_deciles <- quantile(dat$risk_score_t,
+                         probs = seq(from = 0, to = 1, by = 0.1))
+
+#Chunk 2:
+dat$risk_decile_bin <- as.numeric(
+  cut(dat$risk_score_t, breaks = risk_deciles, include.lowest = TRUE)
+)
+
+#Chunk 3:
+some_results <-
+  as.data.frame(
+    dat %>%
+      group_by(risk_decile_bin,race) %>%
+      summarise(mean_illness = mean(gagne_sum_t))
+  )
+some_results
+
+#Chunk 4:
+library(ggplot2)
+ggplot(some_results,
+       aes(x = risk_decile_bin, y = mean_illness, color = race)) +
+  geom_point() + geom_line()
+```
+
+## 1 
+Code chunk 1 is using  Risk score produced by the commercial algorithm in year t to create deciles. It's creating 11 percentiles, 0% to 100%, at intervals of 10%. 
+
+## 2 
+Code chunk 2 is creating a new variable called risk_decile_bin within our dataset that assigns a bin # to an observation based on the percentile it falls into from the risk_deciles that we created previously. It's grouping them into bins so that we can later use them in our graph.  
+
+## 3 
+Code chunk 3 is creating a new dataframe by grouping the data by risk_decile_bin & race, and producing the mean number of chronic illnesses within each decile (for each race) represented by mean_illness. 
+
+## 4 
+```{r}
+#Chunk 1:
+risk_deciles <- quantile(dat$risk_score_t,
+                         probs = seq(from = 0, to = 1, by = 0.1))
+
+#Chunk 2:
+dat$risk_decile_bin <- as.numeric(
+  cut(dat$risk_score_t, breaks = risk_deciles, include.lowest = TRUE)
+)
+
+#Chunk 3:
+some_new_results <-
+  as.data.frame(
+    dat %>%
+      group_by(risk_decile_bin,race) %>%
+      summarise(mean_med_expenditures = mean(cost_t))
+  )
+
+#Chunk 4:
+library(ggplot2)
+ggplot(some_new_results,
+       aes(x = risk_decile_bin, y = mean_med_expenditures, color = race)) +
+  geom_point() + geom_line()
+```
+
+## 5 
+The key difference between the patterns exhibited in Figure 1(A) vs. 3(A) is that Figure 1(A) shows a greater divergence between the two racial groups while Figure 3(A) seems to have them in line. Figure 1(A) measures number of active chronic illnesses across the risk score precentiles, while Figure 3(A) measures medical expenditures across the risk score percentiles. This means that while costs stay roughly the same across percentiles, the black racial group is suffering from more active chronic illnesses at every percentile. 
+This difference could be accounted for based on average socio-economic situations of patients falling into each racial group; poorer patients are less likely to visit the health providers regularly due to a number of barriers. Also, bias from the doctor-patient interaction could be affecting the data: research shows that the race (and other demographics) of the doctor or the patient can effect how they diagnose illnesses; there's a huge literature on how minority patients are less likely to be properly assisted by health officials. 
