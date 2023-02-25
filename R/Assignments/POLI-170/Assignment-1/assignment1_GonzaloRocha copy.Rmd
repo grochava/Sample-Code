@@ -1,0 +1,94 @@
+---
+title: "POLI 170 - Data Analysis Assignment 1"
+author: "Gonzalo Rocha-Vazquez"
+date: "10/12/2021"
+output: html_document
+---
+
+# Part 1: Basic Operations in R 
+## 1. Creating a Vector. 
+```{r}
+vec1 <- c(1:1000)
+```
+## 2. Sampling.
+```{r}
+vec2 <- sample(vec1, size = 1000, replace = FALSE) #without replacement ensures no numbers are reused
+```
+## 3. Creating a Data Frame.
+```{r}
+dat <- data.frame(vec1,vec2)
+head(dat) #Look at our new dataframe
+```
+## 4. Lookup and Indexing.
+```{r}
+dat_indexed <- which(dat$vec2 == 2 | dat$vec2 == 47 | dat$vec2 == 290 | dat$vec2 == 812)
+dat_indexed #See which observations had these numbers
+```
+## 5. Replacement 
+```{r}
+dat$vec2[dat_indexed] <- NA
+```
+## 6. Variable Renaming. 
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+dat<- rename(dat, c("caseid"="vec1", "wage"="vec2"))
+head(dat) #Check to see if our column names changed
+```
+## 7. Compute Summary Statistics. 
+```{r}
+#Check Basic Summary, function seems to remove NA's for us already
+#summary(dat$wage)
+
+#Calculate Mean of Wage
+mean(dat$wage, na.rm = TRUE)
+#Calculate Median of Wage
+median(dat$wage, na.rm = TRUE)
+#Calculate Standard Deviation of Wage
+sd(dat$wage, na.rm = TRUE)
+```
+## 8. Subsetting. 
+```{r}
+dat2 <- na.omit(dat)
+str(dat2) #Check to see the new number of observations
+```
+
+# Part 2: Preparing to Work with Real Data
+## 1. Reading in Data
+```{r}
+#set working directory
+setwd("/Users/gonzalorocha-vazquez/Desktop/POLI 170/Assignment 1")
+
+#load data
+hdat <- read.csv("data_health_synth_small.csv")
+```
+## 2. Data Size
+
+### Number of Rows and Columns 
+This dataset contains 48784 rows (observations) and 4 columns (variables).
+
+### What does this mean?
+Each row corresponds to a recorded instance of a patient's case and the columns give us relevant details on that person. 
+The first column tells us the cost of their medical expenditures for that year. The second column tells us their race (black or white). The third column is a binary variable that tells us whether or not they were female. The 4th column tells us the their mean systolic blood pressure for that year. 
+
+## 3. Summarize Data 
+```{r}
+summary(hdat)
+```
+The two most important results from this summary are regarding cost and bps_mean. In regards to costs, we can see that they ranged between $0 and $550500, with a mean of $7660; this mean seems to be skewed by the max. The 1st quartile ($1200), median ($2800), and 3rd quartile ($6600) suggest that most costs were nowhere near the max; that most patients (atleast 75%) spent less than the mean ($7660).
+
+Since race is a string, we would need to turn it into a binary variable to receive relevant results. For the female variable, we can see that the mean is 0.6306, suggesting that 63% of the patients in the dataset were female. 
+
+## 4. Mean cost across racial groups
+```{r}
+#Confirm racial groups
+table(hdat$race)
+
+#Mean cost for black racial group
+mean(hdat$cost[hdat$race == "black"])
+#Mean cost for white racial group
+mean(hdat$cost[hdat$race == "white"])
+```
+
+# Part 3: Short Answer
+The graph is measuring how the number of active chronic conditions affect the Percentile of Algorithm Risk Score. The curves represent the different racial groups included in this study: Black and White. This test for heterogeneity across racial groups finds that at the same Percentile of Algorithm Risk Score, the number of active chronic conditions in a patient that is Black is higher than those of a patient who is white; the divergence increases as risk percentile increases. In sum, this means that patients who are white are more likely to get preventative care, while those who are black are likely to receive care when it is too late. 
