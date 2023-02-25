@@ -1,0 +1,223 @@
+---------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/gonzalorocha-vazquez/Desktop/Homework 3/Gonzalo_HW3.txt
+  log type:  text
+ opened on:   7 May 2021, 23:31:37
+
+. 
+. * Change the working directory 
+. cd "/Users/gonzalorocha-vazquez/Desktop/Homework 3"
+/Users/gonzalorocha-vazquez/Desktop/Homework 3
+
+. 
+. * load the data 
+. use county_characteristics.dta, replace 
+
+. describe
+
+Contains data from county_characteristics.dta
+  obs:         3,221                          
+ vars:            34                          30 Apr 2021 16:47
+---------------------------------------------------------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+---------------------------------------------------------------------------------------------------------------------------------
+fips_county     str5    %9s                   
+fips_state      str2    %9s                   State FIPS Code (2-digit)
+cz              double  %9.0g                 Commuting Zone Identifier(1990 Definition)
+czname          str22   %22s                  Commuting Zone Name
+hhinc_mean2000  float   %9.0g                 Mean Household Income 2000
+mean_commu~2000 float   %9.0g                 Average Commute Time of Working Adults in 2000
+frac_coll_~2000 float   %9.0g                 Fraction of Residents w/ a College Degree or More in 2000
+frac_coll_~2010 float   %9.0g                 Fraction of Residents w/ a College Degree or More in 2006-2010 ACS
+foreign_sh~2010 float   %9.0g                 Share of Population Born Outside the U.S. in 2006-2010 ACS
+med_hhinc1990   double  %12.0g                Median Household Income in 1990
+med_hhinc2016   double  %12.0g                Median Household Income in 2016
+poor_share2010  float   %9.0g                 Share Below Poverty Line 2006-2010 ACS
+poor_share2000  float   %9.0g                 Share Below Poverty Line 2000
+poor_share1990  float   %9.0g                 Share Below Poverty Line 1990
+share_white2010 float   %9.0g                 Share white 2010
+share_black2010 float   %9.0g                 Share black 2010
+share_hisp2010  float   %9.0g                 Share hisp 2010
+share_asian2010 float   %9.0g                 Share asian 2010
+share_black2000 float   %9.0g                 Share black 2000
+share_white2000 float   %9.0g                 Share white 2000
+share_hisp2000  float   %9.0g                 Share hisp 2000
+share_asian2000 float   %9.0g                 Share asian 2000
+gsmn_math_~2013 float   %9.0g                 Average School District Level Standardized Test Scores in 3rd Grade in 2013
+rent_twobed2015 float   %8.0g                 Average Rent for Two-Bedroom Apartment in 2015
+singlepare~2010 float   %9.0g                 Share of Single-Headed Households with Children 2006-2010 ACS
+singlepare~1990 float   %9.0g                 Share of Single-Headed Households with Children 1990
+singlepare~2000 float   %9.0g                 Share of Single-Headed Households with Children 2000
+traveltime~2010 float   %9.0g                 Share of Working Adults w/ Commute Time of 15 Minutes Or Less in 2006-2010 ACS
+emp2000         float   %9.0g                 Employment Rate 2000
+mail_retur~2010 float   %9.0g                 Census Form Rate Return Rate 2010
+ln_wage_growt~d float   %9.0g                 Log wage growth for HS Grad., 2005-2014
+popdensity2010  float   %9.0g                 Population Density (per square mile) in 2010
+ann_avg_jo~2013 float   %9.0g                 Average Annual Job Growth Rate 2004-2013
+job_densit~2013 float   %9.0g                 Job Density (in square miles) in 2013
+---------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+
+. 
+. *===============================
+. * Questions (make sure to refer to the instructions for more detail)
+. *===============================
+. 
+. * 1. what is the average, max, and min rent of a two bedroom apartment in 2015 across counties
+. sum rent_twobed2015
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+rent_tw~2015 |      3,143    684.8963    208.2076   172.1595   2085.227
+
+. * average = 684.8963; min = 172.1595; max = 2085.227
+. 
+. * 2. the fips_county for san diego is 06073
+. * what is the average two bedroom rent in san diego county
+. sum rent_twobed2015 if fips_county == "06073"
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+rent_tw~2015 |          1    1441.758           .   1441.758   1441.758
+
+. * average = 1441.758
+. 
+. * 3A. what is the population density of San Diego county
+. summarize popdensity2010 if fips_county == "06073"
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+popdens~2010 |          1    735.8169           .   735.8169   735.8169
+
+. * population density of SD = 735.8169
+. 
+. * 3B. construct a histogram for population density
+. twoway histogram popdensity2010, frac color (gs12) ///
+>         title("Distribution of County Population Density Across the Country") ///
+>         xtitle("Population Density (per square mile) (2010)") ///
+>         ytitle("Fraction") ///
+>         graphregion(color(white) fcolor(white))
+
+. 
+. * 4. generate a scatterplot with popdensity2010 on the x-axis
+. * and rent_twobed2015 on the y-axis
+. twoway scatter rent_twobed2015 popdensity2010, msymbol(circle_hollow) msize(large) ///
+>         title("Average Two-Bedroom Rent vs. Population Density") ///
+>         xtitle("Population Density (per square mile) (2010)") ///
+>         ytitle("Average Rent for Two-Bedroom Apartment (2015)") ///
+>         graphregion(color(white) fcolor(white))
+
+. 
+. * 5A. next create a variable called log_popdensity2010 that is equal
+. * to the log of popdensity2010
+. gen log_popdensity2010 = ln(popdensity2010)
+(2 missing values generated)
+
+. 
+. * 5B. generate a scatterplot with log_popdensity2010 on the x-axis
+. * and rent_twobed2015 on the y-axis
+. twoway scatter rent_twobed2015 log_popdensity2010, msymbol(circle_hollow) msize(large) ///
+>         title("Average Two-Bedroom Rent vs. Log Population Density") ///
+>         xtitle("Log Population Density (per square mile) (2010)") ///
+>         ytitle("Average Rent for Two-Bedroom Apartment (2015)") ///
+>         graphregion(color(white) fcolor(white))
+
+. 
+. * 6A. estimate the regression
+. reg rent_twobed2015 popdensity2010
+
+      Source |       SS           df       MS      Number of obs   =     3,142
+-------------+----------------------------------   F(1, 3140)      =    323.62
+       Model |  12720894.8         1  12720894.8   Prob > F        =    0.0000
+    Residual |   123426478     3,140  39307.7956   R-squared       =    0.0934
+-------------+----------------------------------   Adj R-squared   =    0.0931
+       Total |   136147373     3,141  43345.2318   Root MSE        =    198.26
+
+--------------------------------------------------------------------------------
+rent_twob~2015 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+popdensity2010 |   .0354936    .001973    17.99   0.000     .0316251    .0393622
+         _cons |   674.5851   3.583844   188.23   0.000     667.5582     681.612
+--------------------------------------------------------------------------------
+
+. 
+. * 6B-6C (answer using regression output)
+. 
+. * 6D. compute the predicted average rent for a two bedroom apartment if the popdensity2010 is equal to 1000
+. display  _b[_cons] + _b[popdensity2010]*1000
+710.07878
+
+. 
+. * 6D. compute the predicted average rent for a two bedroom apartment if the popdensity2010 is equal to 2000
+. display  _b[_cons] + _b[popdensity2010]*2000
+745.57243
+
+.  
+. * 7A. Regression with log_popdensity2010 as the explanatory variable 
+. reg rent_twobed2015 log_popdensity2010
+
+      Source |       SS           df       MS      Number of obs   =     3,142
+-------------+----------------------------------   F(1, 3140)      =    816.99
+       Model |  28110139.7         1  28110139.7   Prob > F        =    0.0000
+    Residual |   108037233     3,140  34406.7622   R-squared       =    0.2065
+-------------+----------------------------------   Adj R-squared   =    0.2062
+       Total |   136147373     3,141  43345.2318   Root MSE        =    185.49
+
+------------------------------------------------------------------------------------
+   rent_twobed2015 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------------+----------------------------------------------------------------
+log_popdensity2010 |   53.57284   1.874283    28.58   0.000      49.8979    57.24778
+             _cons |   475.2218   8.049943    59.03   0.000     459.4381    491.0055
+------------------------------------------------------------------------------------
+
+. 
+. * 7C. compute the predicted average rent of a two bedroom apartment that has a popdensity2010 equal to 2000 
+. display  _b[_cons] + _b[log_popdensity2010]*ln(1000)
+845.28989
+
+. 
+. * 7D. compute the predicted average rent of a two bedroom apartment that has a popdensity2010 equal to 2000
+. display  _b[_cons] + _b[log_popdensity2010]*ln(2000)
+882.42375
+
+. 
+. * 8 Make a scatterplot with log_popdensity2010 on the x-axis
+. * rent_twobed2015 on the y-axis and a fitted line. You 
+. * can construct the line using the steps in the lecture slides
+. * or the lfit command
+. twoway scatter rent_twobed2015 log_popdensity2010, msymbol(circle_hollow) ///
+>         || lfit rent_twobed2015 log_popdensity2010, ///
+>         title("Average Two-Bedroom Rent vs. Log Population Density") ///
+>         xtitle("Log Population Density (per square mile) (2010)") ///
+>         ytitle("Average Rent for Two-Bedroom Apartment (2015)") ///
+>         graphregion(color(white) fcolor(white))
+
+. 
+.         
+. * 9. Pick another variable in the dataset and explore the relationship
+. * between this variable and rent_twobed2015
+. reg rent_twobed2015 gsmn_math_~2013
+
+      Source |       SS           df       MS      Number of obs   =     3,013
+-------------+----------------------------------   F(1, 3011)      =     96.46
+       Model |  3913300.19         1  3913300.19   Prob > F        =    0.0000
+    Residual |   122157857     3,011  40570.5271   R-squared       =    0.0310
+-------------+----------------------------------   Adj R-squared   =    0.0307
+       Total |   126071157     3,012  41856.2939   Root MSE        =    201.42
+
+-----------------------------------------------------------------------------------
+  rent_twobed2015 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+------------------+----------------------------------------------------------------
+gsmn_math_g3_2013 |   46.18622   4.702688     9.82   0.000     36.96541    55.40702
+            _cons |   545.0037   15.53431    35.08   0.000     514.5447    575.4626
+-----------------------------------------------------------------------------------
+
+. 
+. * close log
+. log close
+      name:  <unnamed>
+       log:  /Users/gonzalorocha-vazquez/Desktop/Homework 3/Gonzalo_HW3.txt
+  log type:  text
+ closed on:   7 May 2021, 23:31:42
+---------------------------------------------------------------------------------------------------------------------------------
