@@ -1,0 +1,207 @@
+--------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/gonzalorocha-vazquez/Desktop/Homework 2/Gonzalo_HW2.txt
+  log type:  text
+ opened on:  30 Apr 2021, 21:36:09
+
+. 
+. ***************************************
+. 
+. * Part 1: Setup and Exploring
+. 
+. ***************************************
+. 
+. *0. change your working directory and load the data.
+. cd "/Users/gonzalorocha-vazquez/Desktop/Homework 2"
+/Users/gonzalorocha-vazquez/Desktop/Homework 2
+
+. 
+. * load the data
+. use anes_2016.dta, clear
+
+. 
+. * 1.    Generate a table of frequencies of V161158x (Party ID). 
+. * This is a categorical variable that takes on seven values, 
+. * from “Strong Democrat” to “Strong Republican.” Notice that 
+. *  missing values are coded -9 and -8.
+. tab V161158x
+
+                PRE: SUMMARY - Party ID |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+-9. RF (-9) in V161155 (FTF only)/-9 in |         12        0.28        0.28
+-8. DK (-8) in V161156 or V161157 (FTF  |         11        0.26        0.54
+                     1. Strong Democrat |        890       20.84       21.38
+           2. Not very strong Democract |        559       13.09       34.47
+                3. Independent-Democrat |        490       11.48       45.95
+                         4. Independent |        579       13.56       59.51
+              5. Independent-Republican |        500       11.71       71.22
+          6. Not very strong Republican |        508       11.90       83.11
+                   7. Strong Republican |        721       16.89      100.00
+----------------------------------------+-----------------------------------
+                                  Total |      4,270      100.00
+
+. 
+. * 2.    Next, you will create a new variable called partyid. 
+.                 *In doing this, you should go through the steps listed below:
+. 
+.         ** 2a.  Generate a new variable, partyid, and set it to be equal to V161158x
+.         gen partyid = V161158x
+
+.         
+.         ** 2b. Recode partyid so that Democrats are coded 1,
+.         *       Independents are coded 2 and Republicans are coded 3, and missing values are coded acc
+> ordingly. 
+.         *       The recode command is not one we covered in class so type "help recode"
+.         *   One of the examples in the help file will be particularly helpful
+.         recode partyid (1/3 = 1) (4 = 2) (5/7 = 3) (8 9 = .)
+(partyid: 3357 changes made)
+
+.         
+.         ** 2c.  Label partyid as “Party Identification.”
+.         label var partyid "Party Identification"
+
+. 
+. * 3. 
+.         ** 3a. rename V161087 (Feeling Thermometer: Republican Presidential candidate) to "trumpft"
+.         rename V161087 trumpft
+
+. 
+.         ** 3b.  Replace values to missing if values are equal to -99 or -88
+.         replace trumpft = . if trumpft == -99 | trumpft == -88
+(41 real changes made, 41 to missing)
+
+. 
+.         ** 3c. average of trumpft
+.         mean(trumpft)
+
+Mean estimation                   Number of obs   =      4,229
+
+--------------------------------------------------------------
+             |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+     trumpft |   36.95744   .5368476      35.90493    38.00994
+--------------------------------------------------------------
+
+. 
+. * 4
+.         ** 4a. average if Democrat
+.         mean(trumpft) if partyid == 1
+
+Mean estimation                   Number of obs   =      1,920
+
+--------------------------------------------------------------
+             |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+     trumpft |   14.08906   .5310803      13.04751    15.13062
+--------------------------------------------------------------
+
+. 
+.         ** 4a. average if Independent
+.         mean(trumpft) if partyid == 2
+
+Mean estimation                   Number of obs   =        570
+
+--------------------------------------------------------------
+             |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+     trumpft |   35.58772   1.332713      32.97008    38.20536
+--------------------------------------------------------------
+
+. 
+.         ** 4c. average if republican
+.         mean(trumpft) if partyid == 3
+
+Mean estimation                   Number of obs   =      1,721
+
+--------------------------------------------------------------
+             |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+     trumpft |   62.88495   .6787344      61.55372    64.21618
+--------------------------------------------------------------
+
+.         
+.         ** 4c. retrieve percentiles
+.         summarize trumpft, detail
+
+      PRE: Feeling Thermometer: Republican Presidential
+                            cand
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               4,229
+25%            0              0       Sum of Wgt.       4,229
+
+50%           30                      Mean           36.95744
+                        Largest       Std. Dev.      34.91161
+75%           70            100
+90%           85            100       Variance        1218.82
+95%          100            100       Skewness       .3358216
+99%          100            100       Kurtosis       1.634574
+
+. 
+. * 5 .
+.         ** a.   Rename V161267 to age.
+.         rename V161267 age
+
+. 
+.         ** b. replace age to missing if less than zero
+.         
+.         ** c. median value of age
+. 
+. 
+. 
+. 
+. ********** DESCRIPTIVE STATISTICS **********
+. 
+. * 6. Generate histograms with the fractions of sample  for: 
+. ** a.   trumpft,
+. graph twoway histogram trumpft, frac width() ///
+>         xlabel(0(10)100) ///
+>         title("Distribution of people in favor of Trump") ///
+>         xtitle("Feelings Thermometer Score") ///
+>         ytitle("Percentage")
+
+. 
+. *7 scatter plot of age and trumpft
+. twoway scatter trumpft age, msymbol(smcircle_hollow) ///
+>         title("Relationship between Age and Feelings about Trump") ///
+>         xtitle("Age") ///
+>         ytitle("Feelings Thermometer Score") ///
+>         graphregion(color(white) fcolor(white))
+
+. 
+. 
+. 
+. * 8 reshape the data
+.         ** a.
+.         rename V161086 demft0 
+
+.         rename V162078 demft1
+
+. 
+.         ** b.
+.         keep respondent_id demft0 demft1
+
+.         
+.         ** c.
+.         reshape long demft, i(respondent_id) j(ba_election)
+(note: j = 0 1)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                     4270   ->    8540
+Number of variables                   3   ->       3
+j variable (2 values)                     ->   ba_election
+xij variables:
+                          demft0 demft1   ->   demft
+-----------------------------------------------------------------------------
+
+.         
+. * close log
+. log close
+      name:  <unnamed>
+       log:  /Users/gonzalorocha-vazquez/Desktop/Homework 2/Gonzalo_HW2.txt
+  log type:  text
+ closed on:  30 Apr 2021, 21:36:12
+--------------------------------------------------------------------------------------------------------
